@@ -26,7 +26,19 @@ module.exports = {
         'card': '0px 0px 20px 3px rgba(0,0,0,0.5)',
       },
       spacing: {
-        '128': '32rem',
+        '102': '26rem',
+        '128': '32rem'
+      },
+      keyframes: {
+        expand: {
+          "100%": {
+            "width": "512px",
+            "border-radius": "0.75rem"
+          }
+        }
+      },
+      animation: {
+        expand: "expand 150ms ease forwards"
       }
     }
   },
