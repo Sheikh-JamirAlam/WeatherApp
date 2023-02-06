@@ -24,13 +24,20 @@ module.exports = {
       keyframes: {
         expand: {
           "100%": {
-            "width": "512px",
+            "width": "32rem",
+            "border-radius": "0.75rem"
+          }
+        },
+        expand_mobile: {
+          "100%": {
+            "width": "18rem",
             "border-radius": "0.75rem"
           }
         }
       },
       animation: {
-        expand: "expand 150ms ease forwards"
+        expand: "expand 150ms ease forwards",
+        expand_mobile: "expand_mobile 150ms ease forwards"
       }
     }
   },
