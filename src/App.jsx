@@ -175,7 +175,7 @@ function App() {
       <div
         className={`h-full w-full flex bg-center bg-cover ${isLoading ? 'invisible' : 'visible'}`}
         style={{
-          backgroundImage: `url("./src/assets/${data.weather[0].main.toLowerCase()}.jpg")`
+          backgroundImage: `url("./assets/${data.weather[0].main.toLowerCase()}.jpg")`
         }}
       >
         <div className="flex flex-col place-content-center mx-auto font-josefin font-normal text-base md:text-lg text-gray-200">

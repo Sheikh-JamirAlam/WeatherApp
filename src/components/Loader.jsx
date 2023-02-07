@@ -1,7 +1,7 @@
 const Loader = (props) => {
     return (
         <div className={`h-screen w-screen flex justify-center items-center bg-neutral-200 ${(!props.isVisible) && "absolute invisible"}`}>
-            <img src="./src/assets/loading.svg" alt="Loading" />
+            <img src="./assets/loading.svg" alt="Loading" />
         </div>
     );
 }
