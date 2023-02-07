@@ -4,21 +4,21 @@ import Loader from "./components/Loader";
 
 function App() {
   const [data, setData] = useState({
-    "name": "Kolkata",
+    "name": "London",
     "sys": {
-      "country": "IN"
+      "country": "GB"
     },
     "weather": [{
       "main": "Clear"
     }],
     "wind": {
-      "speed": 5.14
+      "speed": 1.03
     },
     "main": {
-      "temp": 25.97,
-      "feels_like": 25.97,
-      "pressure": 1012,
-      "humidity": 53
+      "temp": 7.37,
+      "feels_like": 7.37,
+      "pressure": 1037,
+      "humidity": 70
     }
   });
   const [isLoading, setIsLoading] = useState(true);
@@ -26,6 +26,7 @@ function App() {
   const [isClickedSearch, setIsClickedSearch] = useState(false);
   const [handleChange, setHandleChange] = useState("");
   const [handleError, setHandleError] = useState(false);
+  const [isFirstLoad, setIsFirstLoad] = useState(true);
   const [timeZoneName, setTimeZoneName] = useState("Asia/Kolkata");
   const [date, setDate] = useState(new Date());
   const [time, setTime] = useState("");
@@ -33,11 +34,15 @@ function App() {
 
   useEffect(() => {
     getLocation();
+    setIsFirstLoad(false);
+    return () => {
+      setIsFirstLoad(true);
+    }
   }, []);
 
   useEffect(() => {
     if (!handleError) {
-      const cityLookup = (isClickedSearch) ? cityTimezones.lookupViaCity(handleChange) : cityTimezones.lookupViaCity("Kolkata");
+      const cityLookup = (isClickedSearch) ? cityTimezones.lookupViaCity(handleChange) : cityTimezones.lookupViaCity("London");
       const searchedCity = cityLookup.filter((city) => {
         return city.iso2 === data.sys.country;
       });
@@ -137,7 +142,15 @@ function App() {
     });
     if (response.ok) {
       const userData = await response.json();
-      await handleSearch(userData.city);
+      if (isFirstLoad) {
+        if (cityTimezones.lookupViaCity(userData.city).length === 0) {
+          await handleSearch("London");
+        } else {
+          await handleSearch(userData.city);
+        }
+      } else {
+        await handleSearch(userData.city);
+      }
       setIsLoading(false);
     }
   }
@@ -160,7 +173,7 @@ function App() {
     <>
       <Loader isVisible={isLoading} />
       <div
-        className={`h-full w-full flex bg-center ${isLoading ? 'invisible' : 'visible'}`}
+        className={`h-full w-full flex bg-center bg-cover ${isLoading ? 'invisible' : 'visible'}`}
         style={{
           backgroundImage: `url("./src/assets/${data.weather[0].main.toLowerCase()}.jpg")`
         }}
