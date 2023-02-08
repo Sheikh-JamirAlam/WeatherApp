@@ -1,5 +1,4 @@
 import { useState, useEffect } from "react";
-import cityTimezones from 'city-timezones';
 import Loader from "./components/Loader";
 
 function App() {
@@ -23,38 +22,27 @@ function App() {
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isSearchDisabled, setIsSearchDisabled] = useState(true);
-  const [isClickedSearch, setIsClickedSearch] = useState(false);
   const [handleChange, setHandleChange] = useState("");
   const [handleError, setHandleError] = useState(false);
-  const [isFirstLoad, setIsFirstLoad] = useState(true);
   const [timeZoneName, setTimeZoneName] = useState("Asia/Kolkata");
   const [date, setDate] = useState(new Date());
   const [time, setTime] = useState("");
   const [icon, setIcon] = useState("clear-day");
+  const [backgroundImage, setBackgroundImage] = useState("clear");
 
   useEffect(() => {
     getLocation();
-    setIsFirstLoad(false);
-    return () => {
-      setIsFirstLoad(true);
-    }
   }, []);
 
   useEffect(() => {
     if (!handleError) {
-      const cityLookup = (isClickedSearch) ? cityTimezones.lookupViaCity(handleChange) : cityTimezones.lookupViaCity("London");
-      const searchedCity = cityLookup.filter((city) => {
-        return city.iso2 === data.sys.country;
-      });
       const options = {
         hour: 'numeric', minute: 'numeric',
         hour12: false,
-        timeZone: searchedCity[0].timezone
+        timeZone: timeZoneName
       };
-      setTimeZoneName(searchedCity[0].timezone);
       setTime(new Intl.DateTimeFormat('en-US', options).format(date));
       const timerId = setInterval(refreshDate, 1000);
-      setIsClickedSearch(false);
       return () => {
         clearInterval(timerId);
       };
@@ -83,75 +71,97 @@ function App() {
           setIcon("thunderstorms-rain");
         else
           setIcon("thunderstorms");
+        setBackgroundImage("thunderstorm");
         break;
       case "Drizzle":
         setIcon("drizzle");
+        setBackgroundImage("drizzle");
         break;
       case "Rain":
         setIcon("rain");
+        setBackgroundImage("rain");
         break;
       case "Snow":
         if (weather.description === "Sleet")
           setIcon("sleet");
         else
           setIcon("snow");
+        setBackgroundImage("snow");
         break;
       case "Clear":
         setIcon("clear-day");
+        setBackgroundImage("clear");
         break;
       case "Clouds":
         if (weather.description === "scattered clouds" || weather.description === "few clouds")
           setIcon("cloudy");
         else
           setIcon("overcast");
+        setBackgroundImage("clouds");
         break;
       case "Mist":
         setIcon("mist");
+        setBackgroundImage("haze");
         break;
       case "Smoke":
         setIcon("smoke");
+        setBackgroundImage("fog");
         break;
       case "Ash":
         setIcon("smoke");
+        setBackgroundImage("fog");
         break;
       case "Haze":
         setIcon("haze");
+        setBackgroundImage("haze");
         break;
       case "Fog":
         setIcon("fog");
+        setBackgroundImage("fog");
         break;
       case "Dust":
         setIcon("dust");
+        setBackgroundImage("haze");
         break;
       case "Sand":
         setIcon("dust-wind");
+        setBackgroundImage("haze");
         break;
       case "Squall":
         setIcon("wind");
+        setBackgroundImage("haze");
         break;
       case "Tornado":
         setIcon("tornado");
+        setBackgroundImage("fog");
         break;
     }
   }
 
   async function getLocation() {
-    const url = `https://ipapi.co/json/`;
+    const success = async (position) => {
+      await getLocationName(position.coords.latitude, position.coords.longitude);
+      setIsLoading(false);
+    }
+    const error = () => {
+      console.log("Unable to retrieve location.");
+    }
+    if (navigator.geolocation) {
+      navigator.geolocation.getCurrentPosition(success, error);
+    } else {
+      console.log("Your browser does not support location tracking, or permission is denied.");
+    }
+  }
+
+  async function getLocationName(lat, lon) {
+    const url = `https://api.openweathermap.org/geo/1.0/reverse?lat=${lat}&lon=${lon}&limit=1&appid=${import.meta.env.VITE_API_KEY}`;
     const response = await fetch(url, {
       method: "GET"
     });
     if (response.ok) {
-      const userData = await response.json();
-      if (isFirstLoad) {
-        if (cityTimezones.lookupViaCity(userData.city).length === 0) {
-          await handleSearch("London");
-        } else {
-          await handleSearch(userData.city);
-        }
-      } else {
-        await handleSearch(userData.city);
-      }
-      setIsLoading(false);
+      const newData = await response.json();
+      getTimeZone(lat, lon);
+      await handleSearch(newData[0].name);
     }
   }
 
@@ -160,12 +170,23 @@ function App() {
     const response = await fetch(url, {
       method: "GET"
     });
-    if (response.ok && cityTimezones.lookupViaCity(location).length !== 0) {
+    if (response.ok) {
       const newData = await response.json();
-      setData(newData);
       handleIconChange(newData.weather[0]);
+      setData(newData);
     } else {
       setHandleError(true);
+    }
+  }
+
+  async function getTimeZone(lat, lon) {
+    const url = `http://api.geonames.org/timezoneJSON?lat=${lat}&lng=${lon}&username=${import.meta.env.VITE_TIME_UNAME}`;
+    const response = await fetch(url, {
+      method: "GET"
+    });
+    if (response.ok) {
+      const newData = await response.json();
+      setTimeZoneName(newData.timezoneId);
     }
   }
 
@@ -175,7 +196,7 @@ function App() {
       <div
         className={`h-full w-full flex bg-center bg-cover ${isLoading ? 'invisible' : 'visible'}`}
         style={{
-          backgroundImage: `url("./assets/${data.weather[0].main.toLowerCase()}.jpg")`
+          backgroundImage: `url("./assets/${backgroundImage}.jpg")`
         }}
       >
         <div className="flex flex-col place-content-center mx-auto font-josefin font-normal text-base md:text-lg text-gray-200">
@@ -222,6 +243,8 @@ function App() {
               className={`material-symbols-outlined text-3xl place-self-center ml-1 md:ml-3 cursor-pointer ${!isSearchDisabled ? "visible relative" : "invisible absolute"}`}
               onClick={event => {
                 getLocation();
+                setHandleChange("");
+                setHandleError(false);
               }}
             >home_pin</span>
             <input
@@ -238,9 +261,8 @@ function App() {
             />
             <span
               className={`material-symbols-outlined text-3xl place-self-center cursor-pointer ${!isSearchDisabled && "mr-1 md:mr-3"} ${isSearchDisabled && "pointer-events-none"}`}
-              onClick={event => {
-                handleSearch(handleChange);
-                setIsClickedSearch(true);
+              onClick={async (event) => {
+                await handleSearch(handleChange);
               }}
             >search</span>
           </div>
