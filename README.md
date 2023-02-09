@@ -20,7 +20,7 @@ npm i
 Create a .env file using this command:
 
 ```sh
-cp cp .env.example .env
+cp .env.example .env
 ```
 
 Add the required environment variables:
