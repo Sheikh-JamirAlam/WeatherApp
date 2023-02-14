@@ -26,9 +26,9 @@ function App() {
   const [isSearchDisabled, setIsSearchDisabled] = useState(true);
   const [handleChange, setHandleChange] = useState("");
   const [handleError, setHandleError] = useState(false);
-  const [timeZoneName, setTimeZoneName] = useState("Asia/Kolkata");
   const [date, setDate] = useState(new Date());
   const [time, setTime] = useState("");
+  const [offsetSeconds, setOffsetSeconds] = useState();
   const [icon, setIcon] = useState("clear-day");
   const [backgroundImage, setBackgroundImage] = useState("clear");
 
@@ -42,7 +42,6 @@ function App() {
         hour: "numeric",
         minute: "numeric",
         hour12: false,
-        timeZone: timeZoneName,
       };
       setTime(new Intl.DateTimeFormat("en-US", options).format(date));
       const timerId = setInterval(refreshDate, 1000);
@@ -58,14 +57,13 @@ function App() {
         hour: "numeric",
         minute: "numeric",
         hour12: false,
-        timeZone: timeZoneName,
       };
       setTime(new Intl.DateTimeFormat("en-US", options).format(date));
     }
   }, [date]);
 
   function refreshDate() {
-    setDate(new Date());
+    getTimeZone(offsetSeconds);
   }
 
   function handleIconChange(weather) {
@@ -164,17 +162,6 @@ function App() {
     }
   }
 
-  async function getLocationCoords(location) {
-    const url = `https://api.openweathermap.org/geo/1.0/direct?q=${location}&limit=1&appid=${import.meta.env.VITE_API_KEY}`;
-    const response = await fetch(url, {
-      method: "GET",
-    });
-    if (response.ok) {
-      const newData = await response.json();
-      await getTimeZone(newData[0].lat, newData[0].lon);
-    }
-  }
-
   async function handleSearch(location) {
     const url = `https://api.openweathermap.org/data/2.5/weather?q=${location}&appid=${import.meta.env.VITE_API_KEY}&units=metric`;
     const response = await fetch(url, {
@@ -182,7 +169,7 @@ function App() {
     });
     if (response.ok) {
       const newData = await response.json();
-      await getLocationCoords(location);
+      await getTimeZone(newData.timezone);
       handleIconChange(newData.weather[0]);
       setData(newData);
     } else {
@@ -190,15 +177,12 @@ function App() {
     }
   }
 
-  async function getTimeZone(lat, lon) {
-    const url = `http://api.geonames.org/timezoneJSON?lat=${lat}&lng=${lon}&username=${import.meta.env.VITE_TIME_UNAME}`;
-    const response = await fetch(url, {
-      method: "GET",
-    });
-    if (response.ok) {
-      const newData = await response.json();
-      setTimeZoneName(newData.timezoneId);
-    }
+  async function getTimeZone(offset) {
+    setOffsetSeconds(offset);
+    const date = new Date();
+    date.setMinutes(date.getMinutes() + date.getTimezoneOffset());
+    date.setSeconds(date.getSeconds() + offset);
+    setDate(date);
   }
 
   return (
