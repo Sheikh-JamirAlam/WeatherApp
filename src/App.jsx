@@ -3,22 +3,24 @@ import Loader from "./components/Loader";
 
 function App() {
   const [data, setData] = useState({
-    "name": "London",
-    "sys": {
-      "country": "GB"
+    name: "London",
+    sys: {
+      country: "GB",
     },
-    "weather": [{
-      "main": "Clear"
-    }],
-    "wind": {
-      "speed": 1.03
+    weather: [
+      {
+        main: "Clear",
+      },
+    ],
+    wind: {
+      speed: 1.03,
     },
-    "main": {
-      "temp": 7.37,
-      "feels_like": 7.37,
-      "pressure": 1037,
-      "humidity": 70
-    }
+    main: {
+      temp: 7.37,
+      feels_like: 7.37,
+      pressure: 1037,
+      humidity: 70,
+    },
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isSearchDisabled, setIsSearchDisabled] = useState(true);
@@ -37,11 +39,12 @@ function App() {
   useEffect(() => {
     if (!handleError) {
       const options = {
-        hour: 'numeric', minute: 'numeric',
+        hour: "numeric",
+        minute: "numeric",
         hour12: false,
-        timeZone: timeZoneName
+        timeZone: timeZoneName,
       };
-      setTime(new Intl.DateTimeFormat('en-US', options).format(date));
+      setTime(new Intl.DateTimeFormat("en-US", options).format(date));
       const timerId = setInterval(refreshDate, 1000);
       return () => {
         clearInterval(timerId);
@@ -52,11 +55,12 @@ function App() {
   useEffect(() => {
     if (!handleError) {
       const options = {
-        hour: 'numeric', minute: 'numeric',
+        hour: "numeric",
+        minute: "numeric",
         hour12: false,
-        timeZone: timeZoneName
+        timeZone: timeZoneName,
       };
-      setTime(new Intl.DateTimeFormat('en-US', options).format(date));
+      setTime(new Intl.DateTimeFormat("en-US", options).format(date));
     }
   }, [date]);
 
@@ -69,8 +73,7 @@ function App() {
       case "Thunderstorm":
         if (weather.description === "thunderstorm with light rain" || weather.description === "thunderstorm with rain" || weather.description === "thunderstorm with heavy rain")
           setIcon("thunderstorms-rain");
-        else
-          setIcon("thunderstorms");
+        else setIcon("thunderstorms");
         setBackgroundImage("thunderstorm");
         break;
       case "Drizzle":
@@ -82,10 +85,8 @@ function App() {
         setBackgroundImage("rain");
         break;
       case "Snow":
-        if (weather.description === "Sleet")
-          setIcon("sleet");
-        else
-          setIcon("snow");
+        if (weather.description === "Sleet") setIcon("sleet");
+        else setIcon("snow");
         setBackgroundImage("snow");
         break;
       case "Clear":
@@ -93,10 +94,8 @@ function App() {
         setBackgroundImage("clear");
         break;
       case "Clouds":
-        if (weather.description === "scattered clouds" || weather.description === "few clouds")
-          setIcon("cloudy");
-        else
-          setIcon("overcast");
+        if (weather.description === "scattered clouds" || weather.description === "few clouds") setIcon("cloudy");
+        else setIcon("overcast");
         setBackgroundImage("clouds");
         break;
       case "Mist":
@@ -142,10 +141,10 @@ function App() {
     const success = async (position) => {
       await getLocationName(position.coords.latitude, position.coords.longitude);
       setIsLoading(false);
-    }
+    };
     const error = () => {
       console.log("Unable to retrieve location.");
-    }
+    };
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(success, error);
     } else {
@@ -156,22 +155,34 @@ function App() {
   async function getLocationName(lat, lon) {
     const url = `https://api.openweathermap.org/geo/1.0/reverse?lat=${lat}&lon=${lon}&limit=1&appid=${import.meta.env.VITE_API_KEY}`;
     const response = await fetch(url, {
-      method: "GET"
+      method: "GET",
     });
     if (response.ok) {
       const newData = await response.json();
-      getTimeZone(lat, lon);
+      await getTimeZone(lat, lon);
       await handleSearch(newData[0].name);
+    }
+  }
+
+  async function getLocationCoords(location) {
+    const url = `https://api.openweathermap.org/geo/1.0/direct?q=${location}&limit=1&appid=${import.meta.env.VITE_API_KEY}`;
+    const response = await fetch(url, {
+      method: "GET",
+    });
+    if (response.ok) {
+      const newData = await response.json();
+      await getTimeZone(newData[0].lat, newData[0].lon);
     }
   }
 
   async function handleSearch(location) {
     const url = `https://api.openweathermap.org/data/2.5/weather?q=${location}&appid=${import.meta.env.VITE_API_KEY}&units=metric`;
     const response = await fetch(url, {
-      method: "GET"
+      method: "GET",
     });
     if (response.ok) {
       const newData = await response.json();
+      await getLocationCoords(location);
       handleIconChange(newData.weather[0]);
       setData(newData);
     } else {
@@ -182,7 +193,7 @@ function App() {
   async function getTimeZone(lat, lon) {
     const url = `http://api.geonames.org/timezoneJSON?lat=${lat}&lng=${lon}&username=${import.meta.env.VITE_TIME_UNAME}`;
     const response = await fetch(url, {
-      method: "GET"
+      method: "GET",
     });
     if (response.ok) {
       const newData = await response.json();
@@ -194,15 +205,17 @@ function App() {
     <>
       <Loader isVisible={isLoading} />
       <div
-        className={`h-full w-full flex bg-center bg-cover ${isLoading ? 'invisible' : 'visible'}`}
+        className={`h-full w-full flex bg-center bg-cover ${isLoading ? "invisible" : "visible"}`}
         style={{
-          backgroundImage: `url("./assets/${backgroundImage}.jpg")`
+          backgroundImage: `url("./assets/${backgroundImage}.jpg")`,
         }}
       >
         <div className="flex flex-col place-content-center mx-auto font-josefin font-normal text-base md:text-lg text-gray-200">
           <div className="place-content-evenly w-72 h-96 md:w-128 md:h-128 mb-12  flex flex-col rounded-xl glass-card">
             <div className="m-3 md:m-5 flex place-content-between">
-              <h3 className="ml-3 md:ml-5">{data.name}, {data.sys.country}</h3>
+              <h3 className="ml-3 md:ml-5">
+                {data.name}, {data.sys.country}
+              </h3>
               <div className="flex">
                 <span className="material-symbols-outlined text-base text-gray-300">schedule</span>
                 <p className="mr-3 md:mr-5 ml-1">{time}</p>
@@ -234,27 +247,33 @@ function App() {
             </div>
           </div>
           <div
-            className={`w-14 h-14 mx-auto flex glass-card place-content-center ${!isSearchDisabled ? "justify-between animate-expand_mobile md:animate-expand" : "items-center cursor-pointer hover:scale-110"} rounded-full transition-transform ease-in-out delay-50 duration-300`}
-            onClick={event => {
+            className={`w-14 h-14 mx-auto flex glass-card place-content-center ${
+              !isSearchDisabled ? "justify-between animate-expand_mobile md:animate-expand" : "items-center cursor-pointer hover:scale-110"
+            } rounded-full transition-transform ease-in-out delay-50 duration-300`}
+            onClick={(event) => {
               setIsSearchDisabled(false);
             }}
           >
             <span
               className={`material-symbols-outlined text-3xl place-self-center ml-1 md:ml-3 cursor-pointer ${!isSearchDisabled ? "visible relative" : "invisible absolute"}`}
-              onClick={event => {
+              onClick={(event) => {
                 getLocation();
                 setHandleChange("");
                 setHandleError(false);
               }}
-            >home_pin</span>
+            >
+              home_pin
+            </span>
             <input
               type="text"
               name="searchtext"
               placeholder="Search by city name."
               autoComplete="off"
               value={handleChange}
-              className={`h-8 w-52 md:w-96 pl-2 bg-transparent place-self-center outline-none border-b-2 border-gray-500 focus:border-gray-300 ${handleError && "border-red-600 focus:border-red-600"} ${!isSearchDisabled ? "visible relative" : "invisible absolute"}`}
-              onChange={event => {
+              className={`h-8 w-52 md:w-96 pl-2 bg-transparent place-self-center outline-none border-b-2 border-gray-500 focus:border-gray-300 ${
+                handleError && "border-red-600 focus:border-red-600"
+              } ${!isSearchDisabled ? "visible relative" : "invisible absolute"}`}
+              onChange={(event) => {
                 setHandleChange(event.target.value);
                 setHandleError(false);
               }}
@@ -264,9 +283,11 @@ function App() {
               onClick={async (event) => {
                 await handleSearch(handleChange);
               }}
-            >search</span>
+            >
+              search
+            </span>
           </div>
-        </div >
+        </div>
       </div>
     </>
   );
