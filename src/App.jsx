@@ -28,7 +28,7 @@ function App() {
   const [handleError, setHandleError] = useState(false);
   const [date, setDate] = useState(new Date());
   const [time, setTime] = useState("");
-  const [offsetSeconds, setOffsetSeconds] = useState();
+  const [offsetSeconds, setOffsetSeconds] = useState(0);
   const [icon, setIcon] = useState("clear-day");
   const [backgroundImage, setBackgroundImage] = useState("clear");
 
