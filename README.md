@@ -1,4 +1,4 @@
-# StudentAttendance
+# WeatherApp
 
 Here are the steps to run WeatherApp on your local system :-
 
