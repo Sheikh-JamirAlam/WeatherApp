@@ -27,7 +27,6 @@ Add the required environment variables:
 
 ```
 VITE_API_KEY= <Openweathermap Api key, https://openweathermap.org/current>
-VITE_TIME_UNAME= <Geonames Api username, http://www.geonames.org/export/web-services.html#timezone>
 ```
 
 ## Deployment
